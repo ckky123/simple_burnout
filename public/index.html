@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Burnout - Corporate Survival Card Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- HOME SCREEN -->
+    <div id="screen-home" class="screen active">
+      <div class="home-container">
+        <h1 class="game-title">BURNOUT</h1>
+        <p class="subtitle">Corporate Survival Card Game</p>
+        <p class="tagline">Everyone works. Not everyone survives.</p>
+
+        <div class="home-form">
+          <input type="text" id="player-name" placeholder="Your Name" maxlength="20" autocomplete="off">
+          <button id="btn-create" class="btn btn-primary">Create Room</button>
+          <div class="join-row">
+            <input type="text" id="room-code" placeholder="Room Code" maxlength="4" autocomplete="off">
+            <button id="btn-join" class="btn btn-secondary">Join</button>
+          </div>
+        </div>
+
+        <div class="rules-summary">
+          <h3>How to Play</h3>
+          <ul>
+            <li>Everyone starts with 100 HP</li>
+            <li>Each turn: lose 5 HP (burnout), draw 2 cards, play up to 3</li>
+            <li>Use recovery cards to heal, action cards to attack others</li>
+            <li>Last employee standing wins!</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOBBY SCREEN -->
+    <div id="screen-lobby" class="screen">
+      <div class="lobby-container">
+        <h2>Room: <span id="lobby-code"></span></h2>
+        <p class="lobby-share">Share this code with friends!</p>
+        <div id="lobby-players" class="player-list"></div>
+        <button id="btn-start" class="btn btn-primary" style="display:none">Start Game</button>
+        <button id="btn-leave" class="btn btn-danger">Leave Room</button>
+      </div>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="screen-game" class="screen">
+      <div class="game-container">
+        <div class="game-header">
+          <div class="turn-info">
+            <span id="turn-indicator"></span>
+            <span id="cards-played-info"></span>
+          </div>
+          <div class="deck-info">Deck: <span id="deck-size">0</span></div>
+        </div>
+
+        <div id="players-board" class="players-board"></div>
+
+        <div id="game-log" class="game-log"></div>
+
+        <div class="hand-area">
+          <h3>Your Hand</h3>
+          <div id="player-hand" class="card-hand"></div>
+        </div>
+
+        <div class="action-bar">
+          <button id="btn-end-turn" class="btn btn-secondary" disabled>End Turn</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TARGET SELECTION MODAL -->
+    <div id="modal-target" class="modal">
+      <div class="modal-content">
+        <h3 id="modal-title">Select Target</h3>
+        <div id="modal-targets" class="modal-targets"></div>
+        <div id="modal-cards" class="modal-cards"></div>
+        <button id="modal-cancel" class="btn btn-danger">Cancel</button>
+      </div>
+    </div>
+
+    <!-- PEEK MODAL -->
+    <div id="modal-peek" class="modal">
+      <div class="modal-content">
+        <h3 id="peek-title">Networking</h3>
+        <div id="peek-cards" class="peek-cards"></div>
+        <button id="peek-close" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div id="screen-gameover" class="screen">
+      <div class="gameover-container">
+        <h2 id="winner-text"></h2>
+        <div id="final-standings"></div>
+        <button id="btn-new-game" class="btn btn-primary" style="display:none">Play Again</button>
+        <button id="btn-home" class="btn btn-secondary">Back to Home</button>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
