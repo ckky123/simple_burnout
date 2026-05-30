@@ -99,6 +99,7 @@ body {
 .game-card.damage { border-color: var(--red); }
 .game-card.action { border-color: var(--blue); }
 .game-card .card-name { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+.game-card .card-emoji { font-size: 2rem; margin-bottom: 6px; }
 .game-card .card-hp { font-size: 1.2rem; font-weight: 900; margin-bottom: 4px; }
 .game-card .card-hp.positive { color: var(--green); }
 .game-card .card-hp.negative { color: var(--red); }

@@ -42,7 +42,10 @@
         <h2>Room: <span id="lobby-code"></span></h2>
         <p class="lobby-share">Share this code with friends!</p>
         <div id="lobby-players" class="player-list"></div>
-        <button id="btn-start" class="btn btn-primary" style="display:none">Start Game</button>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button id="btn-add-bot" class="btn btn-secondary" style="display:none">🤖 Add Bot</button>
+          <button id="btn-start" class="btn btn-primary" style="display:none">Start Game</button>
+        </div>
         <button id="btn-leave" class="btn btn-danger">Leave Room</button>
       </div>
     </div>
@@ -106,6 +109,7 @@
     <div id="toast" class="toast"></div>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
