@@ -5,13 +5,40 @@ let isHost = false;
 let currentRoom = null;
 let gameState = null;
 
-socket.on('connect', () => { myId = socket.id; console.log('Connected:', myId); });
+socket.on('connect', () => {
+  myId = socket.id;
+  console.log('Connected:', myId);
+  // Try to rejoin if we have a saved session
+  const saved = localStorage.getItem('burnout_session');
+  if (saved) {
+    try {
+      const session = JSON.parse(saved);
+      socket.emit('rejoin_room', { roomCode: session.roomCode, playerName: session.playerName });
+    } catch (e) {
+      localStorage.removeItem('burnout_session');
+    }
+  }
+});
+
+socket.on('rejoin_failed', () => {
+  localStorage.removeItem('burnout_session');
+});
 
 // ============== MESSAGE HANDLERS ==============
-socket.on('room_created', (msg) => { currentRoom = msg.roomCode; isHost = true; showLobby(msg.room); });
-socket.on('room_joined', (msg) => { currentRoom = msg.roomCode; isHost = msg.room.isHost; showLobby(msg.room); });
+socket.on('room_created', (msg) => { currentRoom = msg.roomCode; isHost = true; saveSession(msg.roomCode); showLobby(msg.room); });
+socket.on('room_joined', (msg) => { currentRoom = msg.roomCode; isHost = msg.room.isHost; saveSession(msg.roomCode); showLobby(msg.room); });
 socket.on('player_joined', (msg) => { updateLobby(msg.room); });
 socket.on('player_left', (msg) => { updateLobby(msg.room); addLog(`${msg.playerName} left`, 'system'); });
+socket.on('player_disconnected', (msg) => { addLog(`${msg.playerName} disconnected (60s to rejoin)`, 'system'); });
+socket.on('player_reconnected', (msg) => { addLog(`${msg.playerName} reconnected!`, 'system'); });
+
+function saveSession(roomCode) {
+  const name = document.getElementById('player-name').value.trim();
+  localStorage.setItem('burnout_session', JSON.stringify({ roomCode, playerName: name }));
+}
+function clearSession() {
+  localStorage.removeItem('burnout_session');
+}
 socket.on('game_state', (msg) => { gameState = msg.state; renderGame(); });
 socket.on('card_effect_popup', (msg) => { showCardPopup(msg); });
 socket.on('discard_required', (msg) => { showDiscardModal(msg); });
@@ -323,13 +350,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-leave').addEventListener('click', () => {
-    socket.emit('leave_room');
+    socket.emit('quit_game');
+    clearSession();
     showScreen('screen-home');
     isHost = false; currentRoom = null; gameState = null;
   });
 
   document.getElementById('btn-end-turn').addEventListener('click', () => {
     socket.emit('end_turn');
+  });
+
+  document.getElementById('btn-quit-game').addEventListener('click', () => {
+    if (confirm('Are you sure you want to quit? You will be eliminated.')) {
+      socket.emit('quit_game');
+      clearSession();
+      showScreen('screen-home');
+      isHost = false; currentRoom = null; gameState = null;
+    }
   });
 
   document.getElementById('modal-cancel').addEventListener('click', () => {
@@ -345,7 +382,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   document.getElementById('btn-home').addEventListener('click', () => {
-    socket.emit('leave_room');
+    socket.emit('quit_game');
+    clearSession();
     showScreen('screen-home');
     isHost = false; currentRoom = null; gameState = null;
   });

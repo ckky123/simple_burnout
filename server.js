@@ -572,15 +572,65 @@ io.on('connection', (socket) => {
 
   socket.on('leave_room', () => handleDisconnect());
 
-  socket.on('disconnect', () => handleDisconnect());
+  socket.on('quit_game', () => {
+    if (!currentRoom) return;
+    // Clear localStorage on client side (handled by client)
+    removePlayerFromRoom(true);
+  });
 
-  function handleDisconnect() {
+  socket.on('disconnect', () => {
     if (!currentRoom) return;
     const room = rooms.get(currentRoom);
     if (!room) return;
-    const idx = room.players.findIndex(p => p.id === socket.id);
+    const player = room.players.find(p => p.id === socket.id);
+    if (!player) return;
+
+    // Mark as disconnected, keep for 60 seconds
+    player.disconnected = true;
+    player.disconnectTimer = setTimeout(() => {
+      // If still disconnected after 60s, remove them
+      removePlayerFromRoom(false);
+    }, 60000);
+
+    io.to(currentRoom).emit('player_disconnected', { playerName: player.name });
+  });
+
+  socket.on('rejoin_room', (msg) => {
+    const code = (msg.roomCode || '').trim().toUpperCase();
+    const name = (msg.playerName || '').trim();
+    if (!code || !name) { socket.emit('rejoin_failed'); return; }
+    if (!rooms.has(code)) { socket.emit('rejoin_failed'); return; }
+
+    const room = rooms.get(code);
+    const player = room.players.find(p => p.name === name && p.disconnected);
+    if (!player) { socket.emit('rejoin_failed'); return; }
+
+    // Reconnect!
+    clearTimeout(player.disconnectTimer);
+    player.disconnected = false;
+    player.id = socket.id;
+    socket.join(code);
+    currentRoom = code;
+    playerName = name;
+
+    if (room.host === player.id) room.host = socket.id;
+
+    if (room.state === 'playing') {
+      socket.emit('game_state', { state: getPlayerState(room, socket.id) });
+      io.to(code).emit('player_reconnected', { playerName: name });
+    } else {
+      socket.emit('room_joined', { roomCode: code, room: getPublicRoom(room, socket.id) });
+    }
+  });
+
+  function removePlayerFromRoom(permanent) {
+    if (!currentRoom) return;
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+    const idx = room.players.findIndex(p => p.id === socket.id || (p.name === playerName && p.disconnected));
     if (idx === -1) return;
     const name = room.players[idx].name;
+    if (room.players[idx].disconnectTimer) clearTimeout(room.players[idx].disconnectTimer);
     room.players.splice(idx, 1);
     socket.leave(currentRoom);
 
