@@ -13,12 +13,57 @@ socket.on('room_joined', (msg) => { currentRoom = msg.roomCode; isHost = msg.roo
 socket.on('player_joined', (msg) => { updateLobby(msg.room); });
 socket.on('player_left', (msg) => { updateLobby(msg.room); addLog(`${msg.playerName} left`, 'system'); });
 socket.on('game_state', (msg) => { gameState = msg.state; renderGame(); });
-socket.on('card_effect_popup', (msg) => {
-  // Only show if no popup is currently active (avoid double-popup)
-  const popup = document.getElementById('card-popup');
-  if (!popup.classList.contains('active')) showCardPopup(msg);
-});
+socket.on('card_effect_popup', (msg) => { showCardPopup(msg); });
 socket.on('discard_required', (msg) => { showDiscardModal(msg); });
+socket.on('forced_card', (msg) => {
+  addLog(`${msg.playerName} was forced to play ${msg.card.name} (${formatHp(msg.card.hp)})`, 'damage');
+  showCardPopup({
+    emoji: msg.card.emoji || '💀',
+    name: msg.card.name,
+    hp: msg.card.hp,
+    category: 'damage',
+    description: msg.card.description || '',
+    context: `⚠️ ${msg.playerName} was FORCED to play this!`,
+    shake: true,
+  });
+});
+socket.on('turn_start_sequence', (msg) => {
+  // 1. Show burnout drain popup
+  showCardPopup({
+    emoji: '🔥',
+    name: 'Burnout',
+    hp: -msg.drain,
+    category: 'damage',
+    description: 'The grind never stops...',
+    context: `${msg.playerName} lost ${msg.drain} HP from burnout`,
+    shake: false,
+  });
+  // 2. Show draw cards popup
+  if (msg.drawnCount > 0) {
+    showCardPopup({
+      emoji: '🃏',
+      name: `Drew ${msg.drawnCount} Cards`,
+      hp: 0,
+      category: 'action',
+      description: 'New cards added to hand',
+      context: `${msg.playerName} drew ${msg.drawnCount} card${msg.drawnCount > 1 ? 's' : ''}`,
+      shake: false,
+    });
+  }
+  // 3. Show forced card if any
+  if (msg.forcedCard) {
+    showCardPopup({
+      emoji: msg.forcedCard.emoji || '💀',
+      name: msg.forcedCard.name,
+      hp: msg.forcedCard.hp,
+      category: 'damage',
+      description: msg.forcedCard.description || '',
+      context: `⚠️ ${msg.playerName} was FORCED to play this!`,
+      shake: true,
+    });
+    addLog(`${msg.playerName} was forced to play ${msg.forcedCard.name} (${formatHp(msg.forcedCard.hp)})`, 'damage');
+  }
+});
 socket.on('card_played', (msg) => {
   addLog(`${msg.playerName} played ${msg.card.name}${msg.card.hp ? ' ('+formatHp(msg.card.hp)+')' : ''} ${msg.card.description||''}`, msg.card.category);
   // Show popup for every card played
@@ -315,7 +360,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ============== CARD POPUP (ANIME EFFECT) ==============
+let popupQueue = [];
+let popupShowing = false;
+
 function showCardPopup(data) {
+  popupQueue.push(data);
+  if (!popupShowing) processPopupQueue();
+}
+
+function processPopupQueue() {
+  if (popupQueue.length === 0) { popupShowing = false; return; }
+  popupShowing = true;
+  const data = popupQueue.shift();
+
   const popup = document.getElementById('card-popup');
   const inner = document.getElementById('card-popup-inner');
   const emoji = document.getElementById('popup-emoji');
@@ -343,10 +400,11 @@ function showCardPopup(data) {
   // Show
   popup.classList.add('active');
 
-  // Auto-hide after 2.5 seconds
+  // Auto-hide after 2 seconds, then show next in queue
   setTimeout(() => {
     popup.classList.remove('active');
-  }, 2500);
+    setTimeout(() => processPopupQueue(), 300);
+  }, 2000);
 }
 
 // ============== DISCARD MODAL ==============
@@ -406,6 +464,22 @@ function showDiscardModal(data) {
   confirmBtn.onclick = () => {
     socket.emit('discard_cards', { cardUids: [...selected] });
     modal.classList.remove('active');
+  };
+
+  // Add undo/go back button
+  let undoBtn = document.getElementById('btn-undo-discard');
+  if (!undoBtn) {
+    undoBtn = document.createElement('button');
+    undoBtn.id = 'btn-undo-discard';
+    undoBtn.className = 'btn btn-secondary';
+    undoBtn.style.marginTop = '8px';
+    confirmBtn.parentNode.insertBefore(undoBtn, confirmBtn.nextSibling);
+  }
+  undoBtn.textContent = '↩ Go Back & Play More Cards';
+  undoBtn.style.display = 'block';
+  undoBtn.onclick = () => {
+    modal.classList.remove('active');
+    // Player stays on their turn, can keep playing cards
   };
 
   modal.classList.add('active');

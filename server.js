@@ -100,12 +100,7 @@ function startTurn(room) {
     return;
   }
 
-  player.hp -= getPlayerDrain(player);
   room.cardsPlayedThisTurn = 0;
-
-  // Apply turn heal from policies (Flexible Hours)
-  const turnHeal = getPlayerTurnHeal(player);
-  if (turnHeal > 0) player.hp = Math.min(100, player.hp + turnHeal);
 
   // Clear expired global effects
   if (room.globalEffects && room.globalEffects.halveRecoveryUntil === player.id) {
@@ -113,15 +108,32 @@ function startTurn(room) {
     room.globalEffects.halveRecoveryUntil = null;
   }
 
+  // 1. Burnout drain
+  const drain = getPlayerDrain(player);
+  player.hp -= drain;
+
+  // Apply turn heal from policies (Flexible Hours)
+  const turnHeal = getPlayerTurnHeal(player);
+  if (turnHeal > 0) player.hp = Math.min(100, player.hp + turnHeal);
+
   if (player.hp <= 0) {
     player.hp = 0; player.alive = false;
-    io.to(room.code).emit('player_eliminated', { playerName: player.name });
-    if (checkWin(room)) return;
-    setTimeout(() => nextTurn(room), 1500);
+    broadcastGameState(room);
+    setTimeout(() => {
+      io.to(room.code).emit('turn_start_sequence', { playerName: player.name, drain, drawnCount: 0, forcedCard: null });
+      io.to(room.code).emit('player_eliminated', { playerName: player.name });
+      checkWin(room);
+      if (room.state === 'playing') setTimeout(() => nextTurn(room), 2000);
+    }, 500);
     return;
   }
 
-  // Force play one damage card if in hand
+  // 2. Draw cards (2 base + policy bonus)
+  const totalDraw = 2 + getPlayerExtraDraw(player);
+  const drawnCards = [];
+  for (let i = 0; i < totalDraw; i++) { const c = drawCard(room); if (c) { player.hand.push(c); drawnCards.push(c); } }
+
+  // 3. Force play one damage card if in hand
   const dmgIdx = player.hand.findIndex(c => c && c.category === 'damage');
   let forcedCard = null;
   if (dmgIdx !== -1) {
@@ -132,7 +144,10 @@ function startTurn(room) {
       player.alive = false;
       broadcastGameState(room);
       setTimeout(() => {
-        io.to(room.code).emit('card_played', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: '(forced)', emoji: forcedCard.emoji } });
+        io.to(room.code).emit('turn_start_sequence', {
+          playerName: player.name, drain, drawnCount: drawnCards.length,
+          forcedCard: { name: forcedCard.name, hp: forcedCard.hp, emoji: forcedCard.emoji, description: forcedCard.description },
+        });
         io.to(room.code).emit('player_eliminated', { playerName: player.name });
         checkWin(room);
         if (room.state === 'playing') setTimeout(() => nextTurn(room), 2000);
@@ -141,29 +156,28 @@ function startTurn(room) {
     }
   }
 
-  // Draw cards (2 base + policy bonus)
-  const totalDraw = 2 + getPlayerExtraDraw(player);
-  for (let i = 0; i < totalDraw; i++) { const c = drawCard(room); if (c) player.hand.push(c); }
-
   if (player.isBot) {
     broadcastGameState(room);
-    // Show forced card popup after state is sent
     if (forcedCard) {
       setTimeout(() => {
-        io.to(room.code).emit('card_played', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: '(forced)', emoji: forcedCard.emoji } });
-      }, 300);
+        io.to(room.code).emit('forced_card', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: forcedCard.description, emoji: forcedCard.emoji } });
+      }, 800);
     }
     setTimeout(() => botPlayTurn(room, player), 1500);
     return;
   }
 
   broadcastGameState(room);
-  // Show forced card popup after state is sent (so client has rendered the game screen)
-  if (forcedCard) {
-    setTimeout(() => {
-      io.to(room.code).emit('card_played', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: '(forced)', emoji: forcedCard.emoji } });
-    }, 400);
-  }
+
+  // Emit turn_start sequence for anime popups
+  setTimeout(() => {
+    io.to(room.code).emit('turn_start_sequence', {
+      playerName: player.name,
+      drain,
+      drawnCount: drawnCards.length,
+      forcedCard: forcedCard ? { name: forcedCard.name, hp: forcedCard.hp, emoji: forcedCard.emoji, description: forcedCard.description } : null,
+    });
+  }, 500);
 }
 
 function playChaosCard(room, player, card, roomCode) {
