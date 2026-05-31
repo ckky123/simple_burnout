@@ -13,7 +13,40 @@ socket.on('room_joined', (msg) => { currentRoom = msg.roomCode; isHost = msg.roo
 socket.on('player_joined', (msg) => { updateLobby(msg.room); });
 socket.on('player_left', (msg) => { updateLobby(msg.room); addLog(`${msg.playerName} left`, 'system'); });
 socket.on('game_state', (msg) => { gameState = msg.state; renderGame(); });
-socket.on('card_played', (msg) => { addLog(`${msg.playerName} played ${msg.card.name}${msg.card.hp ? ' ('+formatHp(msg.card.hp)+')' : ''} ${msg.card.description||''}`, msg.card.category); });
+socket.on('card_effect_popup', (msg) => {
+  // Only show if no popup is currently active (avoid double-popup)
+  const popup = document.getElementById('card-popup');
+  if (!popup.classList.contains('active')) showCardPopup(msg);
+});
+socket.on('discard_required', (msg) => { showDiscardModal(msg); });
+socket.on('card_played', (msg) => {
+  addLog(`${msg.playerName} played ${msg.card.name}${msg.card.hp ? ' ('+formatHp(msg.card.hp)+')' : ''} ${msg.card.description||''}`, msg.card.category);
+  // Show popup for every card played
+  const cardEmojis = {
+    'Holiday': '🏖️', 'Good Sleep': '😴', 'Spa Day': '🧖', 'Massage': '💆', 'Yoga': '🧘',
+    'Running': '🏃', 'Cycling': '🚴', 'Hiking': '🥾', 'Movie Night': '🎬', 'Board Game Night': '🎲',
+    'Nice Dinner': '🍽️', 'Social': '☕', 'Afternoon Tea': '🫖', 'Sick Leave': '🤒',
+    'Overtime': '⏰', 'Crunch Week': '💀', 'Toxic Manager': '🐍', 'Long Meeting': '😵',
+    'Performance Review': '📋', 'Monday Blues': '😩',
+    'Delegate': '📤', 'Steal Lunch': '🍱', 'Boundaries': '🛡️', 'Networking': '👀',
+    'Coffee Run': '☕', 'Team Building': '🤝', 'Layoff': '✂️', 'Quiet Quitting': '🤫',
+    'Work-Life Balance': '⚖️', 'Flexible Hours': '🕐', 'Four-Day Week': '📅', 'Gym Membership': '💪',
+    'Micromanagement': '🔍', 'Toxic Workplace': '☠️', 'KPI Pressure': '📊', 'PTO Denied': '🚫',
+    'Mass Layoff': '💣', 'Budget Cuts': '💸', 'Corporate Restructure': '🏢',
+    'Corporate Merger': '🤝', 'Knowledge Transfer': '🔀', 'Economic Downturn': '📉',
+    'Email While on Holiday': '📧', 'Urgent Meeting': '🚨', 'Weekend Call': '📱',
+    'Not My Job': '🙅', 'Can You Cover For Me?': '🔄', 'Reply All': '📨',
+  };
+  showCardPopup({
+    emoji: msg.card.emoji || cardEmojis[msg.card.name] || '🃏',
+    name: msg.card.name,
+    hp: msg.card.hp || 0,
+    category: msg.card.category,
+    description: msg.card.description || '',
+    context: `${msg.playerName} played this`,
+    shake: msg.card.category === 'damage' || msg.card.category === 'chaos',
+  });
+});
 socket.on('action_blocked', (msg) => { addLog(`${msg.targetName} blocked ${msg.playerName}'s ${msg.action} with Boundaries!`, 'system'); });
 socket.on('player_eliminated', (msg) => { addLog(`${msg.playerName} has burned out! Eliminated.`, 'damage'); });
 socket.on('turn_skipped', (msg) => { addLog(`${msg.playerName}'s turn skipped (Sick Leave)`, 'system'); });
@@ -279,3 +312,101 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') document.getElementById('btn-join').click();
   });
 });
+
+
+// ============== CARD POPUP (ANIME EFFECT) ==============
+function showCardPopup(data) {
+  const popup = document.getElementById('card-popup');
+  const inner = document.getElementById('card-popup-inner');
+  const emoji = document.getElementById('popup-emoji');
+  const name = document.getElementById('popup-name');
+  const hp = document.getElementById('popup-hp');
+  const desc = document.getElementById('popup-desc');
+  const context = document.getElementById('popup-context');
+
+  // Set content
+  emoji.textContent = data.emoji || '🃏';
+  name.textContent = data.name || '';
+  if (data.hp && data.hp !== 0) {
+    hp.textContent = formatHp(data.hp);
+    hp.className = `popup-hp ${data.hp > 0 ? 'positive' : 'negative'}`;
+    hp.style.display = 'block';
+  } else {
+    hp.style.display = 'none';
+  }
+  desc.textContent = data.description || '';
+  context.textContent = data.context || '';
+
+  // Set category class
+  inner.className = `card-popup-inner ${data.category || ''}${data.shake ? ' shake' : ''}`;
+
+  // Show
+  popup.classList.add('active');
+
+  // Auto-hide after 2.5 seconds
+  setTimeout(() => {
+    popup.classList.remove('active');
+  }, 2500);
+}
+
+// ============== DISCARD MODAL ==============
+function showDiscardModal(data) {
+  const modal = document.getElementById('modal-discard');
+  const cardsDiv = document.getElementById('discard-cards');
+  const confirmBtn = document.getElementById('btn-confirm-discard');
+  const required = data.discardCount;
+  let selected = new Set();
+
+  const cardEmoji = {
+    'Holiday': '🏖️', 'Good Sleep': '😴', 'Spa Day': '🧖', 'Massage': '💆', 'Yoga': '🧘',
+    'Running': '🏃', 'Cycling': '🚴', 'Hiking': '🥾', 'Movie Night': '🎬', 'Board Game Night': '🎲',
+    'Nice Dinner': '🍽️', 'Social': '☕', 'Afternoon Tea': '🫖', 'Sick Leave': '🤒',
+    'Overtime': '⏰', 'Crunch Week': '💀', 'Toxic Manager': '🐍', 'Long Meeting': '😵',
+    'Performance Review': '📋', 'Monday Blues': '😩',
+    'Delegate': '📤', 'Steal Lunch': '🍱', 'Boundaries': '🛡️', 'Networking': '👀',
+    'Coffee Run': '☕', 'Team Building': '🤝', 'Layoff': '✂️', 'Quiet Quitting': '🤫',
+    'Work-Life Balance': '⚖️', 'Flexible Hours': '🕐', 'Four-Day Week': '📅', 'Gym Membership': '💪',
+    'Micromanagement': '🔍', 'Toxic Workplace': '☠️', 'KPI Pressure': '📊', 'PTO Denied': '🚫',
+    'Mass Layoff': '💣', 'Budget Cuts': '💸', 'Corporate Restructure': '🏢',
+    'Corporate Merger': '🤝', 'Knowledge Transfer': '🔀', 'Economic Downturn': '📉',
+  };
+
+  // Render cards
+  cardsDiv.innerHTML = data.hand.map(c => {
+    const em = c.emoji || cardEmoji[c.name] || '🃏';
+    const hpDisplay = c.hp ? `<div class="card-hp ${c.hp > 0 ? 'positive' : 'negative'}">${formatHp(c.hp)}</div>` : '';
+    return `<div class="game-card ${c.category}" data-uid="${c.uid}">
+      <span class="card-category">${c.category}</span>
+      <div class="card-emoji">${em}</div>
+      <div class="card-name">${c.name}</div>
+      ${hpDisplay}
+    </div>`;
+  }).join('');
+
+  // Click to toggle selection
+  cardsDiv.querySelectorAll('.game-card').forEach(el => {
+    el.addEventListener('click', () => {
+      const uid = el.dataset.uid;
+      if (selected.has(uid)) {
+        selected.delete(uid);
+        el.classList.remove('selected-discard');
+      } else if (selected.size < required) {
+        selected.add(uid);
+        el.classList.add('selected-discard');
+      }
+      confirmBtn.disabled = selected.size !== required;
+      confirmBtn.textContent = `Discard ${selected.size}/${required}`;
+    });
+  });
+
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = `Discard 0/${required}`;
+
+  // Confirm handler
+  confirmBtn.onclick = () => {
+    socket.emit('discard_cards', { cardUids: [...selected] });
+    modal.classList.remove('active');
+  };
+
+  modal.classList.add('active');
+}

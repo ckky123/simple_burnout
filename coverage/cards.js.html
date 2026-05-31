@@ -1,0 +1,532 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for cards.js</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="prettify.css" />
+    <link rel="stylesheet" href="base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="index.html">All files</a> cards.js</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>149/149</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">83.33% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>30/36</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>8/8</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>149/149</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">96x</span>
+<span class="cline-any cline-yes">768x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">1840x</span>
+<span class="cline-any cline-yes">768x</span>
+<span class="cline-any cline-yes">96x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">570x</span>
+<span class="cline-any cline-yes">570x</span>
+<span class="cline-any cline-yes">570x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Burnout Card Game - Card Definitions
+&nbsp;
+const CARDS = {
+  recovery: [
+    { id: 'holiday', name: 'Holiday', hp: 25, emoji: '🏖️', description: 'Take a well-deserved vacation!', copies: 2 },
+    { id: 'good_sleep', name: 'Good Sleep', hp: 15, emoji: '😴', description: 'A full 8 hours of uninterrupted rest.', copies: 3 },
+    { id: 'spa', name: 'Spa Day', hp: 15, emoji: '🧖', description: 'Full body relaxation and rejuvenation.', copies: 2 },
+    { id: 'massage', name: 'Massage', hp: 15, emoji: '💆', description: 'Deep tissue stress relief.', copies: 2 },
+    { id: 'yoga', name: 'Yoga', hp: 10, emoji: '🧘', description: 'Namaste your stress away.', copies: 3 },
+    { id: 'running', name: 'Running', hp: 10, emoji: '🏃', description: "Runner's high kicks in!", copies: 3 },
+    { id: 'cycling', name: 'Cycling', hp: 10, emoji: '🚴', description: 'Fresh air and freedom on two wheels.', copies: 2 },
+    { id: 'hiking', name: 'Hiking', hp: 10, emoji: '🥾', description: 'Nature heals the soul.', copies: 2 },
+    { id: 'movie_night', name: 'Movie Night', hp: 10, emoji: '🎬', description: 'Popcorn, couch, zero responsibilities.', copies: 3 },
+    { id: 'board_game', name: 'Board Game Night', hp: 10, emoji: '🎲', description: 'Analog fun with friends.', copies: 2 },
+    { id: 'nice_dinner', name: 'Nice Dinner', hp: 10, emoji: '🍽️', description: 'Good food, good mood.', copies: 3 },
+    { id: 'social', name: 'Social', hp: 5, emoji: '☕', description: 'Catching up with friends over coffee.', copies: 3 },
+    { id: 'afternoon_tea', name: 'Afternoon Tea', hp: 5, emoji: '🫖', description: 'A small moment of peace.', copies: 4 },
+    { id: 'sick_leave', name: 'Sick Leave', hp: 20, emoji: '🤒', description: 'Doctor says rest. Skip next turn.', copies: 2, skipNextTurn: true },
+  ],
+  damage: [
+    { id: 'overtime', name: 'Overtime', hp: -30, emoji: '⏰', description: '"We need this by tomorrow."', copies: 3 },
+    { id: 'crunch_week', name: 'Crunch Week', hp: -20, emoji: '💀', description: 'Deadlines everywhere. No escape.', copies: 3 },
+    { id: 'toxic_manager', name: 'Toxic Manager', hp: -20, emoji: '🐍', description: '"Per my last email..."', copies: 2 },
+    { id: 'long_meeting', name: 'Long Meeting', hp: -15, emoji: '😵', description: 'This could have been an email.', copies: 4 },
+    { id: 'performance_review', name: 'Performance Review', hp: -10, emoji: '📋', description: '"Let\'s discuss your growth areas."', copies: 4 },
+    { id: 'monday_blues', name: 'Monday Blues', hp: -10, emoji: '😩', description: 'The weekend was too short.', copies: 4 },
+  ],
+  action: [
+    { id: 'delegate', name: 'Delegate', emoji: '📤', description: 'Give 1 damage card to another player.', copies: 4, actionType: 'delegate' },
+    { id: 'steal_lunch', name: 'Steal Lunch', emoji: '🍱', description: 'Steal 10 HP from another player.', copies: 3, actionType: 'steal', amount: 10 },
+    { id: 'boundaries', name: 'Boundaries', emoji: '🛡️', description: 'Block the next Delegate or Steal targeting you.', copies: 4, actionType: 'shield' },
+    { id: 'networking', name: 'Networking', emoji: '👀', description: "Look at another player's hand.", copies: 3, actionType: 'peek' },
+    { id: 'coffee_run', name: 'Coffee Run', emoji: '☕', description: 'Draw 2 extra cards this turn.', copies: 3, actionType: 'draw', amount: 2 },
+    { id: 'team_building', name: 'Team Building', emoji: '🤝', description: 'All players heal +5 HP.', copies: 2, actionType: 'heal_all', amount: 5 },
+    { id: 'layoff', name: 'Layoff', emoji: '✂️', description: 'Target player discards 2 random cards.', copies: 2, actionType: 'discard_target', amount: 2 },
+    { id: 'quiet_quitting', name: 'Quiet Quitting', emoji: '🤫', description: 'Skip your HP drain this turn.', copies: 3, actionType: 'skip_drain' },
+  ],
+  policy: [
+    // Positive policies
+    { id: 'work_life_balance', name: 'Work-Life Balance', emoji: '⚖️', description: 'Burnout reduced by 5 each turn.', copies: 2, policyType: 'positive', effect: 'reduce_drain', amount: 5 },
+    { id: 'flexible_hours', name: 'Flexible Hours', emoji: '🕐', description: 'Gain 5 HP at start of your turn.', copies: 2, policyType: 'positive', effect: 'heal_on_turn', amount: 5 },
+    { id: 'four_day_week', name: 'Four-Day Week', emoji: '📅', description: 'Draw 1 extra card each turn.', copies: 2, policyType: 'positive', effect: 'extra_draw', amount: 1 },
+    { id: 'gym_membership', name: 'Gym Membership', emoji: '💪', description: 'Gain 5 extra HP whenever you recover.', copies: 2, policyType: 'positive', effect: 'bonus_recovery', amount: 5 },
+    // Negative policies
+    { id: 'micromanagement', name: 'Micromanagement', emoji: '🔍', description: 'Burnout increased by 5.', copies: 2, policyType: 'negative', effect: 'increase_drain', amount: 5 },
+    { id: 'toxic_workplace', name: 'Toxic Workplace', emoji: '☠️', description: 'Lose 5 extra HP each turn.', copies: 2, policyType: 'negative', effect: 'extra_damage', amount: 5 },
+    { id: 'kpi_pressure', name: 'KPI Pressure', emoji: '📊', description: 'Recovery cards heal 5 less.', copies: 2, policyType: 'negative', effect: 'reduce_recovery', amount: 5 },
+    { id: 'pto_denied', name: 'PTO Denied', emoji: '🚫', description: 'Holiday cards have no effect.', copies: 2, policyType: 'negative', effect: 'block_holiday' },
+  ],
+  reaction: [
+    { id: 'email_on_holiday', name: 'Email While on Holiday', emoji: '📧', description: 'Cancel someone\'s Holiday card.', copies: 2, trigger: 'holiday_played', effect: 'cancel_card' },
+    { id: 'urgent_meeting', name: 'Urgent Meeting', emoji: '🚨', description: 'Reduce someone\'s recovery by 10.', copies: 2, trigger: 'recovery_played', effect: 'reduce_recovery', amount: 10 },
+    { id: 'weekend_call', name: 'Weekend Call', emoji: '📱', description: 'After recovery, they lose 10 HP.', copies: 2, trigger: 'recovery_played', effect: 'damage_after', amount: 10 },
+    { id: 'not_my_job', name: 'Not My Job', emoji: '🙅', description: 'Cancel a card targeting you.', copies: 3, trigger: 'targeted', effect: 'cancel_card' },
+    { id: 'cover_for_me', name: 'Can You Cover For Me?', emoji: '🔄', description: 'Redirect a card targeting you.', copies: 2, trigger: 'targeted', effect: 'redirect' },
+    { id: 'reply_all', name: 'Reply All', emoji: '📨', description: 'Copy an action card with new target.', copies: 2, trigger: 'action_played', effect: 'copy_action' },
+  ],
+  chaos: [
+    { id: 'mass_layoff', name: 'Mass Layoff', emoji: '💣', description: 'Everyone loses 50 HP.', copies: 1, chaosType: 'damage_all', amount: 50 },
+    { id: 'budget_cuts', name: 'Budget Cuts', emoji: '💸', description: 'Everyone loses 20 HP.', copies: 1, chaosType: 'damage_all', amount: 20 },
+    { id: 'corporate_restructure', name: 'Corporate Restructure', emoji: '🏢', description: 'Everyone loses 30 HP.', copies: 1, chaosType: 'damage_all', amount: 30 },
+    { id: 'corporate_merger', name: 'Corporate Merger', emoji: '🤝', description: 'Combine two players\' hands, shuffle, deal evenly.', copies: 1, chaosType: 'merge_hands' },
+    { id: 'knowledge_transfer', name: 'Knowledge Transfer', emoji: '🔀', description: 'Two players exchange hands.', copies: 1, chaosType: 'swap_hands' },
+    { id: 'economic_downturn', name: 'Economic Downturn', emoji: '📉', description: 'All recovery halved until your next turn.', copies: 1, chaosType: 'halve_recovery' },
+  ],
+};
+&nbsp;
+function buildDeck() {
+  const deck = [];
+  for (const category of Object.keys(CARDS)) {
+    for (const card of CARDS[category]) {
+      for (let i = 0; i &lt; card.copies; i++) {
+        deck.push({
+          uid: Math.random().toString(36).substr(2, 9),
+          id: card.id,
+          name: card.name,
+          category,
+          emoji: card.emoji <span class="branch-0 cbranch-no" title="branch not covered" >|| '🃏',</span>
+          hp: card.hp || 0,
+          description: card.description,
+          actionType: card.actionType || null,
+          amount: card.amount || 0,
+          skipNextTurn: card.skipNextTurn || false,
+          policyType: card.policyType || null,
+          effect: card.effect || null,
+          trigger: card.trigger || null,
+          chaosType: card.chaosType || null,
+        });
+      }
+    }
+  }
+  return deck;
+}
+&nbsp;
+function shuffleDeck(deck) {
+  const shuffled = [...deck];
+  for (let i = shuffled.length - 1; i &gt; 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+&nbsp;
+// ─── Policy Helpers ───────────────────────────────────────────────────────────
+&nbsp;
+function getPlayerDrain(player) {
+  let drain = 10; // base drain
+  for (const p of (player.policies || [])) {
+    if (p.effect === 'reduce_drain') drain -= p.amount;
+    if (p.effect === 'increase_drain') drain += p.amount;
+    if (p.effect === 'extra_damage') drain += p.amount;
+  }
+  return Math.max(0, drain);
+}
+&nbsp;
+function getPlayerExtraDraw(player) {
+  let extra = 0;
+  for (const p of (player.policies <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
+    if (p.effect === 'extra_draw') extra += p.amount;
+  }
+  return extra;
+}
+&nbsp;
+function getPlayerHealBonus(player) {
+  let bonus = 0;
+  for (const p of (player.policies <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
+    if (p.effect === 'bonus_recovery') bonus += p.amount;
+    if (p.effect === 'reduce_recovery') bonus -= p.amount;
+  }
+  return bonus;
+}
+&nbsp;
+function getPlayerTurnHeal(player) {
+  let heal = 0;
+  for (const p of (player.policies <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>) {
+    if (p.effect === 'heal_on_turn') heal += p.amount;
+  }
+  return heal;
+}
+&nbsp;
+function isHolidayBlocked(player) {
+  return (player.policies <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>.some(p =&gt; p.effect === 'block_holiday');
+}
+&nbsp;
+function canPlayPolicy(player) {
+  return (player.policies <span class="branch-0 cbranch-no" title="branch not covered" >|| [])</span>.length &lt; 2;
+}
+&nbsp;
+module.exports = { CARDS, buildDeck, shuffleDeck, getPlayerDrain, getPlayerExtraDraw, getPlayerHealBonus, getPlayerTurnHeal, isHolidayBlocked, canPlayPolicy };
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-05-30T23:50:30.789Z
+            </div>
+        <script src="prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="sorter.js"></script>
+        <script src="block-navigation.js"></script>
+    </body>
+</html>
+    

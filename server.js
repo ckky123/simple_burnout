@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const { buildDeck, shuffleDeck } = require('./cards');
+const { buildDeck, shuffleDeck, getPlayerDrain, getPlayerExtraDraw, getPlayerHealBonus, getPlayerTurnHeal, isHolidayBlocked, canPlayPolicy } = require('./cards');
 
 const app = express();
 const server = http.createServer(app);
@@ -44,12 +44,14 @@ function getPlayerState(room, playerId) {
     yourHand: player ? player.hand : [],
     yourHp: player ? player.hp : 0,
     yourShield: player ? player.shield : false,
+    yourPolicies: player ? (player.policies || []) : [],
     isYourTurn: room.players[room.currentTurn]?.id === playerId,
     currentPlayerName: room.players[room.currentTurn]?.name || '',
     cardsPlayed: room.cardsPlayedThisTurn,
     maxCards: 3,
     deckSize: room.deck.length,
-    players: room.players.map(p => ({ name: p.name, hp: p.hp, alive: p.alive, shield: p.shield, cardCount: p.hand.length, isYou: p.id === playerId })),
+    players: room.players.map(p => ({ name: p.name, hp: p.hp, alive: p.alive, shield: p.shield, cardCount: p.hand.length, isYou: p.id === playerId, policies: (p.policies || []).map(pol => ({ name: pol.name, emoji: pol.emoji, policyType: pol.policyType })) })),
+    globalEffects: room.globalEffects || {},
   };
 }
 
@@ -98,8 +100,18 @@ function startTurn(room) {
     return;
   }
 
-  player.hp -= 10;
+  player.hp -= getPlayerDrain(player);
   room.cardsPlayedThisTurn = 0;
+
+  // Apply turn heal from policies (Flexible Hours)
+  const turnHeal = getPlayerTurnHeal(player);
+  if (turnHeal > 0) player.hp = Math.min(100, player.hp + turnHeal);
+
+  // Clear expired global effects
+  if (room.globalEffects && room.globalEffects.halveRecoveryUntil === player.id) {
+    room.globalEffects.halveRecovery = false;
+    room.globalEffects.halveRecoveryUntil = null;
+  }
 
   if (player.hp <= 0) {
     player.hp = 0; player.alive = false;
@@ -111,29 +123,96 @@ function startTurn(room) {
 
   // Force play one damage card if in hand
   const dmgIdx = player.hand.findIndex(c => c && c.category === 'damage');
+  let forcedCard = null;
   if (dmgIdx !== -1) {
-    const dmgCard = player.hand.splice(dmgIdx, 1)[0];
-    player.hp = Math.max(0, player.hp + dmgCard.hp);
-    room.discard.push(dmgCard);
-    io.to(room.code).emit('card_played', { playerName: player.name, card: { name: dmgCard.name, hp: dmgCard.hp, category: 'damage', description: '(forced)' } });
+    forcedCard = player.hand.splice(dmgIdx, 1)[0];
+    player.hp = Math.max(0, player.hp + forcedCard.hp);
+    room.discard.push(forcedCard);
     if (player.hp <= 0) {
       player.alive = false;
-      io.to(room.code).emit('player_eliminated', { playerName: player.name });
-      if (checkWin(room)) return;
-      setTimeout(() => nextTurn(room), 1500);
+      broadcastGameState(room);
+      setTimeout(() => {
+        io.to(room.code).emit('card_played', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: '(forced)', emoji: forcedCard.emoji } });
+        io.to(room.code).emit('player_eliminated', { playerName: player.name });
+        checkWin(room);
+        if (room.state === 'playing') setTimeout(() => nextTurn(room), 2000);
+      }, 500);
       return;
     }
   }
 
-  for (let i = 0; i < 2; i++) { const c = drawCard(room); if (c) player.hand.push(c); }
+  // Draw cards (2 base + policy bonus)
+  const totalDraw = 2 + getPlayerExtraDraw(player);
+  for (let i = 0; i < totalDraw; i++) { const c = drawCard(room); if (c) player.hand.push(c); }
 
   if (player.isBot) {
     broadcastGameState(room);
+    // Show forced card popup after state is sent
+    if (forcedCard) {
+      setTimeout(() => {
+        io.to(room.code).emit('card_played', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: '(forced)', emoji: forcedCard.emoji } });
+      }, 300);
+    }
     setTimeout(() => botPlayTurn(room, player), 1500);
     return;
   }
 
   broadcastGameState(room);
+  // Show forced card popup after state is sent (so client has rendered the game screen)
+  if (forcedCard) {
+    setTimeout(() => {
+      io.to(room.code).emit('card_played', { playerName: player.name, card: { name: forcedCard.name, hp: forcedCard.hp, category: 'damage', description: '(forced)', emoji: forcedCard.emoji } });
+    }, 400);
+  }
+}
+
+function playChaosCard(room, player, card, roomCode) {
+  switch (card.chaosType) {
+    case 'damage_all':
+      for (const p of room.players) {
+        if (p.alive) {
+          p.hp = Math.max(0, p.hp - card.amount);
+          if (p.hp <= 0) { p.alive = false; io.to(roomCode).emit('player_eliminated', { playerName: p.name }); }
+        }
+      }
+      io.to(roomCode).emit('card_played', { playerName: player.name, card: { name: card.name, category: 'chaos', description: `Everyone loses ${card.amount} HP!` } });
+      io.to(roomCode).emit('card_effect_popup', { emoji: card.emoji || '💣', name: card.name, hp: -card.amount, category: 'chaos', description: `Everyone loses ${card.amount} HP!`, context: `${player.name} played a CHAOS card!`, shake: true });
+      if (checkWin(room)) return;
+      broadcastGameState(room);
+      break;
+    case 'merge_hands': {
+      const alive = room.players.filter(p => p.alive && p.id !== player.id);
+      if (alive.length < 1) { broadcastGameState(room); return; }
+      const target = alive[Math.floor(Math.random() * alive.length)];
+      const combined = [...player.hand, ...target.hand].sort(() => Math.random() - 0.5);
+      const half = Math.ceil(combined.length / 2);
+      player.hand = combined.slice(0, half);
+      target.hand = combined.slice(half);
+      io.to(roomCode).emit('card_played', { playerName: player.name, card: { name: card.name, category: 'chaos', description: `Merged hands with ${target.name}!` } });
+      broadcastGameState(room);
+      break;
+    }
+    case 'swap_hands': {
+      const alive = room.players.filter(p => p.alive && p.id !== player.id);
+      if (alive.length < 1) { broadcastGameState(room); return; }
+      const target = alive[Math.floor(Math.random() * alive.length)];
+      const temp = player.hand;
+      player.hand = target.hand;
+      target.hand = temp;
+      io.to(roomCode).emit('card_played', { playerName: player.name, card: { name: card.name, category: 'chaos', description: `Swapped hands with ${target.name}!` } });
+      broadcastGameState(room);
+      break;
+    }
+    case 'halve_recovery':
+      room.globalEffects = room.globalEffects || {};
+      room.globalEffects.halveRecovery = true;
+      room.globalEffects.halveRecoveryUntil = player.id;
+      io.to(roomCode).emit('card_played', { playerName: player.name, card: { name: card.name, category: 'chaos', description: 'All recovery halved until next turn!' } });
+      broadcastGameState(room);
+      break;
+    default:
+      broadcastGameState(room);
+  }
 }
 
 function botPlayTurn(room, bot) {
@@ -265,8 +344,9 @@ io.on('connection', (socket) => {
 
     room.deck = shuffleDeck(buildDeck());
     room.discard = []; room.state = 'playing'; room.currentTurn = 0; room.pendingAction = null;
-    for (const p of room.players) { p.hp = 100; p.hand = []; p.shield = false; p.skipTurn = false; p.alive = true; }
+    for (const p of room.players) { p.hp = 100; p.hand = []; p.shield = false; p.skipTurn = false; p.alive = true; p.policies = []; }
     for (const p of room.players) { for (let i = 0; i < 5; i++) { const c = drawCard(room); if (c) p.hand.push(c); } }
+    room.globalEffects = {};
     startTurn(room);
   });
 
@@ -283,12 +363,41 @@ io.on('connection', (socket) => {
     const card = player.hand[cardIndex];
 
     if (card.category === 'recovery') {
+      // Check if holiday is blocked by PTO Denied policy
+      if (card.id === 'holiday' && isHolidayBlocked(player)) {
+        player.hand.splice(cardIndex, 1);
+        room.cardsPlayedThisTurn++; room.discard.push(card);
+        io.to(currentRoom).emit('card_played', { playerName: player.name, card: { name: card.name, hp: 0, category: 'recovery', description: '(blocked by PTO Denied!)' } });
+        broadcastGameState(room);
+        return;
+      }
       player.hand.splice(cardIndex, 1);
-      player.hp = Math.min(100, player.hp + card.hp);
+      let healAmount = card.hp + getPlayerHealBonus(player);
+      // Global effect: halve recovery
+      if (room.globalEffects && room.globalEffects.halveRecovery) healAmount = Math.floor(healAmount / 2);
+      healAmount = Math.max(0, healAmount);
+      player.hp = Math.min(100, player.hp + healAmount);
       if (card.skipNextTurn) player.skipTurn = true;
       room.cardsPlayedThisTurn++; room.discard.push(card);
-      io.to(currentRoom).emit('card_played', { playerName: player.name, card: { name: card.name, hp: card.hp, category: 'recovery' } });
+      io.to(currentRoom).emit('card_played', { playerName: player.name, card: { name: card.name, hp: healAmount, category: 'recovery' } });
       broadcastGameState(room);
+    } else if (card.category === 'policy') {
+      // Policy cards
+      if (!canPlayPolicy(player)) { socket.emit('error_msg', { message: 'Max 2 policies per player' }); return; }
+      player.hand.splice(cardIndex, 1);
+      player.policies.push(card);
+      room.cardsPlayedThisTurn++; room.discard.push(card);
+      io.to(currentRoom).emit('card_played', { playerName: player.name, card: { name: card.name, category: 'policy', description: card.description } });
+      broadcastGameState(room);
+    } else if (card.category === 'chaos') {
+      // Chaos cards
+      player.hand.splice(cardIndex, 1);
+      room.cardsPlayedThisTurn++; room.discard.push(card);
+      playChaosCard(room, player, card, currentRoom);
+    } else if (card.category === 'reaction') {
+      // Reactions can only be played during other players' turns (handled separately)
+      socket.emit('error_msg', { message: 'Reaction cards can only be played in response to other actions' });
+      return;
     } else if (card.category === 'damage') {
       player.hand.splice(cardIndex, 1);
       player.hp = Math.max(0, player.hp + card.hp);
@@ -349,8 +458,8 @@ io.on('connection', (socket) => {
     const cardIndex = player.hand.indexOf(card);
 
     if (action.type === 'steal') {
-      if (target.shield) { target.shield = false; io.to(currentRoom).emit('action_blocked', { playerName: player.name, targetName: target.name, action: 'Steal Lunch' }); }
-      else { const s = Math.min(action.amount, target.hp); target.hp -= s; player.hp = Math.min(100, player.hp + s); io.to(currentRoom).emit('card_played', { playerName: player.name, card: { name: 'Steal Lunch', category: 'action', description: `Stole ${s} HP from ${target.name}!` } }); if (target.hp <= 0) { target.alive = false; io.to(currentRoom).emit('player_eliminated', { playerName: target.name }); } }
+      if (target.shield) { target.shield = false; io.to(currentRoom).emit('action_blocked', { playerName: player.name, targetName: target.name, action: 'Steal Lunch' }); io.to(currentRoom).emit('card_effect_popup', { emoji: '🛡️', name: 'Blocked!', hp: 0, category: 'action', description: 'Boundaries absorbed the attack!', context: `${target.name} blocked ${player.name}'s Steal!` }); }
+      else { const s = Math.min(action.amount, target.hp); target.hp -= s; player.hp = Math.min(100, player.hp + s); io.to(currentRoom).emit('card_played', { playerName: player.name, card: { name: 'Steal Lunch', category: 'action', description: `Stole ${s} HP from ${target.name}!` } }); io.to(currentRoom).emit('card_effect_popup', { emoji: '🍱', name: 'Steal Lunch', hp: -s, category: 'action', description: `${player.name} stole lunch!`, context: `${target.name} lost ${s} HP` }); if (target.hp <= 0) { target.alive = false; io.to(currentRoom).emit('player_eliminated', { playerName: target.name }); } }
       player.hand.splice(cardIndex, 1); room.cardsPlayedThisTurn++; room.discard.push(card); room.pendingAction = null;
       if (checkWin(room)) return;
       broadcastGameState(room);
@@ -398,7 +507,42 @@ io.on('connection', (socket) => {
     if (!room || room.state !== 'playing') return;
     const player = room.players[room.currentTurn];
     if (player.id !== socket.id) return;
-    while (player.hand.length > 5) room.discard.push(player.hand.pop());
+
+    // If hand > 5, ask player to choose which cards to discard
+    if (player.hand.length > 5) {
+      socket.emit('discard_required', {
+        hand: player.hand,
+        discardCount: player.hand.length - 5,
+      });
+      return;
+    }
+
+    room.pendingAction = null;
+    nextTurn(room);
+  });
+
+  socket.on('discard_cards', (msg) => {
+    if (!currentRoom) return;
+    const room = rooms.get(currentRoom);
+    if (!room || room.state !== 'playing') return;
+    const player = room.players[room.currentTurn];
+    if (player.id !== socket.id) return;
+
+    const uidsToDiscard = msg.cardUids || [];
+    const required = player.hand.length - 5;
+    if (uidsToDiscard.length !== required) {
+      socket.emit('error_msg', { message: `Select exactly ${required} card(s) to discard` });
+      return;
+    }
+
+    // Remove selected cards
+    for (const uid of uidsToDiscard) {
+      const idx = player.hand.findIndex(c => c.uid === uid);
+      if (idx !== -1) {
+        room.discard.push(player.hand.splice(idx, 1)[0]);
+      }
+    }
+
     room.pendingAction = null;
     nextTurn(room);
   });
@@ -408,7 +552,7 @@ io.on('connection', (socket) => {
     const room = rooms.get(currentRoom);
     if (!room || room.host !== socket.id) return;
     room.state = 'lobby'; room.deck = []; room.discard = []; room.currentTurn = 0; room.pendingAction = null;
-    for (const p of room.players) { p.hp = 100; p.hand = []; p.shield = false; p.skipTurn = false; p.alive = true; }
+    for (const p of room.players) { p.hp = 100; p.hand = []; p.shield = false; p.skipTurn = false; p.alive = true; p.policies = []; }
     io.to(currentRoom).emit('back_to_lobby', { room: getPublicRoom(room, null) });
   });
 
